@@ -1,0 +1,70 @@
+#!/usr/bin/expect
+
+set timeout -1
+
+# Get ssh key passphrase interactively.
+#stty -echo
+#send_user -- "Enter ssh key passphrase: "
+#expect_user -re "(.*)\n"
+#send_user "\n"
+#stty echo
+#set pass $expect_out(1,string)
+
+# Get ssh url from first arg.
+set ssh_url [lindex $argv 0]
+
+# Create domains list from remaining args.
+set domains []
+for {set x 1} {$x<$argc} {incr x} {
+  lappend domains "[lindex $argv $x]"
+}
+
+# Run certbot.
+eval spawn certbot certonly -v --key-type rsa --preferred-challenges=http --register-unsafely-without-email --agree-tos --webroot-path=/data/letsencrypt --manual -d [join $domains " -d "]
+
+# For testing use this line instead
+#eval spawn certbot certonly --key-type rsa --preferred-challenges=http --register-unsafely-without-email --agree-tos --webroot-path=/data/letsencrypt --manual --test-cert -d [join $domains " -d "]
+
+set certbot_process_id $spawn_id
+
+# Loop through domains as certbot presents verification strings.
+foreach domain $domains {
+  expect -re {(?n)Create a file containing just this data:\r\n\r\n(.+)\r} {
+
+    # Capture the verification string.
+    set verification_string $expect_out(1,string)
+
+    # Save the part of the string before the dot to use as the filename.
+    regexp {[^.]*} "$verification_string" filename
+
+    # ssh into remote server.
+    spawn ssh -o StrictHostKeyChecking=no $ssh_url
+    expect {
+      "Permission denied" {
+        exit 1
+      }
+      #"Enter passphrase for key '/root/.ssh/id_rsa': " {
+      #  send "$pass\n"
+      #}
+    }
+
+    # Write verification string to remote server in ~/.well-known/acme-challenge/
+    expect {\$} {
+      send "mkdir -p .well-known/acme-challenge/\r"
+      send "echo \"$verification_string\" > .well-known/acme-challenge/$filename\r"
+      send "exit\r"
+    }
+
+    # Go back to interacting with certbot, and press Enter to continue.
+    set spawn_id $certbot_process_id
+    send \n
+  }
+}
+
+expect {
+  "Certbot failed to authenticate some domains" {
+    exit 1
+  }
+  "Successfully received certificate." {
+  }
+}
