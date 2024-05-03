@@ -1,18 +1,24 @@
 pipeline {
   agent any
-  parameters {
+  // parameters {
 
-  }
+  // }
   stages {
     stage('Checkout') {
-      step {
+      steps {
         checkout scm
       }
     }
 
     stage('Echo Command') {
-      step {
+      steps {
         sh 'echo Hello world'
+      }
+    }
+
+    stage('Echo Command 2') {
+      steps {
+        sh 'echo Hello world 2'
       }
     }
   }
