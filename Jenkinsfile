@@ -26,5 +26,12 @@ pipeline {
         
       }
     }
+
+    stage('Check Jenkins user') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'jenkins-user', usernameVariable: 'UNAME', passwordVariable: 'PWORD')])
+        sh "echo $UNAME $PWORD"
+      }
+    }
   }
 }
