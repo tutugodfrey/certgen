@@ -16,9 +16,9 @@ pipeline {
       }
     }
 
-    stage('Echo Command 2') {
+    stage('Check docker images') {
       steps {
-        sh 'echo Hello world 2'
+        sh 'docker images'
       }
     }
   }
