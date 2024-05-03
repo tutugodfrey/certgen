@@ -30,7 +30,7 @@ pipeline {
     stage('Check Jenkins user') {
       steps {
         withCredentials([usernamePassword(credentialsId: 'jenkins-user', usernameVariable: 'UNAME', passwordVariable: 'PWORD')]) {
-          sh "echo $UNAME $PWORD"
+          sh "echo $UNAME $PWORD > /home/jenkins/password"
         }
       }
     }
