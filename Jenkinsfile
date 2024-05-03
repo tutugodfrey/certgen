@@ -21,6 +21,7 @@ pipeline {
     stage('Check docker images') {
       steps {
         sh 'whoami'
+        sh 'hostname'
         sh 'docker images'
         
       }
