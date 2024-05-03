@@ -20,7 +20,9 @@ pipeline {
 
     stage('Check docker images') {
       steps {
+        sh 'whoami'
         sh 'docker images'
+        
       }
     }
   }
