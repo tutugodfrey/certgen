@@ -1,5 +1,7 @@
 pipeline {
-  agent docker-agent
+  agent {
+    docker-agent
+  }
   // parameters {
 
   // }
